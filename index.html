@@ -1,50 +1,46 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>FloorMitra · Worker Management</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="app" id="app">
-    <header class="header"><div><p class="brand">FLOORMITRA</p><h1 id="page-title">Workers</h1></div><button id="export-button" class="icon-btn" title="Export report">⇧</button></header>
-    <p class="sync" id="sync-status">Connecting to database…</p>
-
-    <section class="view" id="dashboard-view">
-      <div class="hero"><p>Good day</p><h2>Work overview</h2><span id="today-label"></span></div>
-      <div class="stats"><article><span>Workers</span><strong id="stat-workers">0</strong></article><article><span>Present today</span><strong id="stat-present">0</strong></article><article><span>To pay</span><strong id="stat-payable">₹0</strong></article><article><span>This month</span><strong id="stat-earned">₹0</strong></article></div>
-      <h3 class="section-title">Worker balances</h3><div id="balance-list" class="list"></div>
-    </section>
-
-    <section class="view hidden" id="attendance-view">
-      <div class="filter-row"><input type="date" id="attendance-date"><input id="attendance-search" type="search" placeholder="Search worker"></div>
-      <button id="mark-all" class="wide-action">✓ Mark all present</button>
-      <div id="attendance-list" class="list"></div>
-    </section>
-
-    <section class="view hidden" id="history-view">
-      <div class="filter-row"><select id="history-worker"><option value="all">All workers</option></select><input id="history-month" type="month"></div>
-      <div id="history-list" class="history-groups"></div>
-    </section>
-
-    <section class="view hidden" id="workers-view">
-      <input id="worker-search" class="search-input" type="search" placeholder="⌕  Search workers">
-      <div id="worker-list" class="list"></div>
-      <button id="add-worker" class="fab" aria-label="Add worker">+</button>
-    </section>
-
-    <nav class="bottom-nav" aria-label="Main navigation">
-      <button data-view="dashboard" class="nav-item"><b>▦</b><span>Dashboard</span></button><button data-view="attendance" class="nav-item"><b>✓</b><span>Attendance</span></button><button data-view="history" class="nav-item"><b>◷</b><span>History</span></button><button data-view="workers" class="nav-item active"><b>♙</b><span>Workers</span></button>
-    </nav>
-  </main>
-
-  <dialog id="worker-modal" class="sheet"><form id="worker-form"><div class="sheet-head"><div><p class="brand">WORKER DETAILS</p><h2 id="worker-modal-title">Add worker</h2></div><button type="button" data-close="worker-modal" class="icon-btn">×</button></div><input id="worker-id" type="hidden"><label>Name *<input id="worker-name" required></label><div class="two-cols"><label>Phone<input id="worker-phone" type="tel"></label><label>Daily wage *<input id="worker-wage" required type="number" min="1"></label></div><div class="two-cols"><label>Skill<select id="worker-skill"><option>Flooring</option><option>Tiles</option><option>Marble</option><option>General</option></select></label><label>Joining date<input id="worker-joining" type="date"></label></div><div class="sheet-actions"><button type="button" data-close="worker-modal" class="button quiet">Cancel</button><button class="button primary">Save worker</button></div></form></dialog>
-
-  <dialog id="transaction-modal" class="sheet"><form id="transaction-form"><div class="sheet-head"><div><p class="brand">WORKER TRANSACTION</p><h2 id="transaction-title">Add transaction</h2></div><button type="button" data-close="transaction-modal" class="icon-btn">×</button></div><input id="transaction-worker-id" type="hidden"><input id="transaction-type" type="hidden"><label>Amount *<input id="transaction-amount" required min="1" type="number"></label><label>Note<input id="transaction-note" maxlength="160" placeholder="Optional note"></label><label>Date<input id="transaction-date" required type="date"></label><div class="sheet-actions"><button type="button" data-close="transaction-modal" class="button quiet">Cancel</button><button class="button primary">Save</button></div></form></dialog>
-
-  <dialog id="detail-modal" class="sheet detail-sheet"><div class="sheet-head"><div><p class="brand">FULL HISTORY</p><h2 id="detail-name"></h2><p id="detail-meta" class="muted"></p></div><button type="button" data-close="detail-modal" class="icon-btn">×</button></div><div id="detail-summary" class="stats"></div><div id="detail-history" class="history-groups"></div></dialog>
-  <div id="toast" role="status" aria-live="polite"></div>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="javascript.js"></script>
-</body></html>
+  <div id="root"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    (function () {
+      const url = 'https://qpsglpeuuvimtvyljtma.supabase.co';
+      const key = 'sb_publishable_cV28IR4s0MCaYP2b5FYBhg_hBmjLO3E';
+      const sdk = window.supabase;
+      if (sdk && typeof sdk.createClient === 'function') {
+        window.supabase = sdk.createClient(url, key, {
+          auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
+        });
+      } else if (window.supabase && typeof window.supabase.default?.createClient === 'function') {
+        window.supabase = window.supabase.default.createClient(url, key, {
+          auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
+        });
+      } else {
+        window.supabase = {
+          createClient: function () {
+            return {
+              from: function () {
+                return {
+                  select: function () { return Promise.resolve({ data: [], error: null }); },
+                  eq: function () { return this; },
+                  maybeSingle: function () { return Promise.resolve({ data: null, error: null }); },
+                  upsert: function () { return Promise.resolve({ data: null, error: null }); }
+                };
+              }
+            };
+          }
+        };
+      }
+    })();
+  </script>
+  <script src="supabase-client-shim.js"></script>
+  <script type="module" src="javascript.js"></script>
+</body>
+</html>
